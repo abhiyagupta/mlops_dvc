@@ -1,0 +1,21 @@
+stages:
+  train:
+    cmd: docker-compose run --rm train
+    deps:
+      - src/train.py
+      - configs/experiment/finetune.yaml
+      - data/dogs_dataset
+
+  eval:
+    cmd: docker-compose run --rm eval
+    deps:
+      - src/eval.py
+      - configs/experiment/finetune.yaml
+      - data/dogs_dataset
+
+  infer:
+    cmd: docker-compose run --rm infer
+    deps:
+      - src/infer.py
+      - configs/experiment/finetune.yaml
+      - data/dogs_dataset

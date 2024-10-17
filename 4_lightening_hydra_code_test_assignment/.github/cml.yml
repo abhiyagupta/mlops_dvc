@@ -1,0 +1,71 @@
+name: Train and Report
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  train-and-report:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
+      id-token: write
+
+    steps:
+      # Checkout the repository
+      - uses: actions/checkout@v4
+
+      # Set up Python 3.x (change version as needed)
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+
+      # Install dependencies from requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Pull data from DVC
+      - name: Pull data from DVC
+        env:
+          GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
+        run: |
+          dvc pull
+
+      # Train the model using DVC
+      - name: Train model
+        run: |
+          dvc repro
+
+      # Create and save confusion matrix for dog breed classification
+      - name: Generate confusion matrix
+        run: |
+          python scripts/generate_confusion_matrix.py  # Make sure this script generates and saves confusion_matrix.png
+
+      # Create CML report with training metrics and confusion matrix
+      - name: Create CML report
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Generate plots and test metrics table
+          python scripts/generate_plots.py  # Make sure it generates train_loss.png, train_acc.png
+          
+          # Create markdown report
+          echo "## Model Training Results" >> report.md
+          echo "### Training Metrics" >> report.md
+          echo "![Training Loss](./train_loss.png)" >> report.md
+          echo "![Training Accuracy](./train_acc.png)" >> report.md
+          
+          echo "### Test Metrics" >> report.md
+          cat test_metrics.md >> report.md
+          
+          echo "### Confusion Matrix" >> report.md
+          echo "![Confusion Matrix](./confusion_matrix.png)" >> report.md
+
+          # Post CML report as a comment in GitHub
+          cml comment create report.md
