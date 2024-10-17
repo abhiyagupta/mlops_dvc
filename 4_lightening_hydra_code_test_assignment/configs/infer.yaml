@@ -1,0 +1,40 @@
+defaults:
+  - _self_
+  - data: dogs
+  - model: mdogs
+  - paths: default
+  - callbacks: default
+  - logger: default
+  - trainer: default
+
+paths:
+  output_dir: ${hydra:runtime.cwd}/outputs
+
+ckpt_path: ${paths.output_dir}
+input_path: ${paths.data_dir}/dogs_dataset/dataset/validation/
+output_path: ${hydra:runtime.cwd}/validation_results/
+
+num_images: 5
+
+# defaults:
+#   - _self_
+#   - data: dogs
+#   - model: mdogs
+#   - paths: default
+#   - callbacks: default
+#   - logger: default # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
+#   - trainer: default
+#   # - override hydra/hydra_logging: disabled
+#   # - override hydra/job_logging: disabled
+# #  - hydra: null #default
+#   # Disable Hydra's output directory creation for inference
+# # hydra:
+# #       output_subdir: null
+# #       run:
+# #       dir: .
+# ckpt_path: ${paths.output_dir}
+# # ckpt_path: ${paths.output_dir}/*/checkpoints/*.ckpt # null  # Path to the checkpoint file for inference
+# # Use an environment variable to pass the checkpoint path
+# # checkpoint_path: ${oc.env:CHECKPOINT_PATH}
+# input_path: ${paths.data_dir}/validation/ # null  # Path to input data for inference
+# output_path: ${hydra:runtime.cwd}/validation_results/ # ${paths.output_dir}/validation_results/ # null  # Path to save inference results

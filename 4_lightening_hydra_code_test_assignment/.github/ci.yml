@@ -1,0 +1,120 @@
+# name of my workflow
+name: Python CI/CD application
+
+# events 
+on:
+  # push to main
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+
+
+# groups set of actions that needs to execute
+jobs:
+
+  test:
+    env:
+      # don't expose kaggle API key 😠, using secrets here 🤐
+      username: ${{ secrets.USERNAME }}
+      key: ${{ secrets.KEY }}
+
+
+    runs-on: ubuntu-latest
+  
+    steps:
+    - name: checking kaggle key as env secrets
+      run: |
+        echo "username: ${{ env.USERNAME }}"
+        echo "key: ${{ env.KEY }}"
+
+    - uses: actions/checkout@v4
+
+    # install deps
+    - name: Set requirements
+      run: pip install -r requirements.txt
+
+    # finetune trainer.max_epochs=2 (default)
+    - name: RUN finetune script
+      run: python src/train.py experiment=finetune
+
+
+
+    # TODO:
+    # run: python src/test.py trainer.verbose=false >> _test.log
+    # id: checking_metric
+    # grep _test.log ??parse
+    # if: checking_metric > 0.95
+    # check if test
+      
+
+    - name: save artifact
+      uses: actions/upload-artifact@v3
+      # artifacts for loguru+ckpt
+      with:
+        name: artifacts
+        path: |
+          logs
+          outputs/*/*/checkpoints/*.ckpt
+
+    - name: run pytest
+      run: pytest --cov=tests/
+
+    # https://app.codecov.io/github/Muthukamalan/DogsBreadClassifier/
+    - name: Run tests with coverage
+      run: |
+        coverage run -m pytest
+        coverage xml -o coverage.xml
+        pytest --cov --cov-report=xml
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage.xml
+        fail_ci_if_error: true
+
+
+
+  build-and-push-image:
+    # execute job in sequence
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Log in to the Container registry
+      uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=raw,value=learn-ci
+          type=sha
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}

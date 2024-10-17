@@ -1,0 +1,85 @@
+
+services:
+  train:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      # - .:/code # mount the entire project
+      # - ./configs:/code/configs
+      - ./logs:/code/logs
+      #- ./checkpoints:/code/checkpoints
+      # - ./input:/app/input
+      - ./outputs:/code/outputs
+      - ./data:/code/data      
+    environment:
+      - PYTHONPATH=/code
+      - PYTHONUNBUFFERED=1
+      # - DATA_PATH=/code/data
+      # - OUTPUT_PATH=/code/.data/output      
+    # working_dir: /code
+    command: python src/train.py 
+    #command: python src/train.py --config-dir configs --config-name=train.yaml
+
+  eval:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      #- .:/code # moun the entire project
+      # - ./checkpoints:/code/checkpoints
+      - ./logs:/code/logs
+      - ./outputs:/code/outputs
+      - ./data:/code/data 
+ 
+    environment:
+      - PYTHONPATH=/code 
+      - PYTHONUNBUFFERED=1
+      # - DATA_PATH=/code/data
+      # - OUTPUT_PATH=/code/.data/output
+    #working_dir: /code
+    command: python src/eval.py --config-dir configs --config-name=eval.yaml
+    #command: python src/eval.py --config-path=code/configs --config-name=eval.yaml
+    depends_on:
+      - train
+
+    
+  infer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      #- .:/code # moun the entire project
+      - ./logs:/code/logs
+      - ./validation_results:/code/validation_results      
+      - ./outputs:/code/outputs
+      - ./data:/code/data 
+
+    environment:
+      - PYTHONPATH=/code
+      - PYTHONUNBUFFERED=1
+      # - DATA_PATH=/code/data
+      # - OUTPUT_PATH=/code/.data/output
+    #working_dir: /code
+    command: python src/infer.py --config-dir configs --config-name=infer.yaml
+    #command: python src/infer.py --config-path=code/configs --config-name=infer.yaml
+    depends_on:
+      - eval  
+
+    
+  testing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      #- .:/code
+      - ./cov_html:/code/cov_html  # Mount a volume forS coverage reports       
+    environment:
+      - PYTHONPATH=/code
+      - PYTHONUNBUFFERED=1
+    #command: pytest --maxfail=1 --disable-warnings -q --cov=src --cov-report=html:cov_html --cov-report=term tests/
+    #working_dir: /code
+    command: 
+      sh -c "pip install pytest pytest-cov &&
+             pytest -v --maxfail=1 --disable-warnings --cov=src --cov-report=html:/code/cov_html --cov-report=term tests/"
+    
