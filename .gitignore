@@ -1,5 +1,5 @@
-!configs/data/
 data/
+!configs/data/
 *.env
 logs/
 outputs/
@@ -26,8 +26,6 @@ __pycache__/
 # Environment variables
 .env
 
-# DVC files
-.dvc/
 
 # Model checkpoints and large data files
 *.pth
