@@ -1,0 +1,31 @@
+defaults:
+  - _self_
+  - data: dogs
+  - model: mdogs
+  - paths: default
+  - trainer: default
+  - callbacks: default
+  - logger: default
+
+#ckpt_path: null  # Path to the checkpoint file for evaluation
+paths:
+  output_dir: ${hydra:runtime.cwd}/outputs
+
+ckpt_path: ${paths.output_dir}
+split: "test"  # Which data split to evaluate on
+
+
+
+# defaults:
+#   - _self_
+#   - data: dogs
+#   - model: mdogs
+#   - paths: default
+#   - trainer: default
+#   - callbacks: default
+#   - logger: default
+
+# ckpt_path: ${paths.output_dir}/checkpoints/*.ckpt # null  # Path to the checkpoint file for inference
+# split: "test"  # Which data split to evaluate on
+
+# # ckpt_path: null  # Path to the checkpoint file for evaluation

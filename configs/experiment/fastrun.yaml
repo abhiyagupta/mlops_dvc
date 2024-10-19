@@ -1,0 +1,43 @@
+# @package _global_
+
+defaults:
+  - override /data: dogs
+  - override /model: mdogs
+  - override /callbacks: default
+  - override /logger: dafault 
+  - override /trainer: default
+
+seed: 42
+
+data:
+  batch_size: 64
+  num_workers: 0
+  pin_memory: True
+
+
+model:
+  model_name: "resnet18"
+  num_classes: 10
+  lr: 1e-3
+  pretrained: true
+
+
+trainer:
+  fast_dev_run: True
+  # min_epochs: 1
+  # max_epochs: 3
+
+callbacks:
+  model_checkpoint:
+    monitor: "val/acc"
+    mode: "max"
+    save_top_k: 0
+    save_last: false
+
+  early_stopping:
+    monitor: "val/acc"
+    patience: 10
+    mode: "max"
+
+tags:
+  - fastrun
