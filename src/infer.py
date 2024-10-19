@@ -14,8 +14,8 @@ from omegaconf import DictConfig, OmegaConf
 import logging
 import random
 
-from src.models.dogs_classifier import DogsBreedClassifier
-from src.utils.logging_utils import setup_logger, task_wrapper, get_rich_progress
+from models.dogs_classifier import DogsBreedClassifier
+from utils.logging_utils import setup_logger, task_wrapper, get_rich_progress
 from rich.console import Console
 import rootutils
 import os
