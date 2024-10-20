@@ -1,7 +1,8 @@
 name: Train and Report
 on:
-  push:
-    branches: [ master ]
+  workflow_dispatch:
+  # push:
+  #   branches: [ master ]
   pull_request:
     branches: [ master ]
 
@@ -58,10 +59,7 @@ jobs:
         run: |
           dvc repro
 
-      # Create and save confusion matrix for dog breed classification
-      - name: Generate confusion matrix
-        run: |
-          python scripts/generate_confusion_matrix.py  # Make sure this script generates and saves confusion_matrix.png
+      
 
       # Create CML report with training metrics and confusion matrix
       - name: Create CML report
@@ -72,16 +70,20 @@ jobs:
           python scripts/generate_plots.py  # Make sure it generates train_loss.png, train_acc.png
           
           # Create markdown report
-          echo "## Model Training Results" >> report.md
-          echo "### Training Metrics" >> report.md
-          echo "![Training Loss](./train_loss.png)" >> report.md
-          echo "![Training Accuracy](./train_acc.png)" >> report.md
+          # echo "## Model Training Results" >> report.md
+          # echo "### Training Metrics" >> report.md
+          echo "![Training Loss](./train_loss_step.png)" >> report.md
+          echo "![Training Accuracy](./train_acc_step.png)" >> report.md
           
           echo "### Test Metrics" >> report.md
-          cat test_metrics.md >> report.md
-          
-          echo "### Confusion Matrix" >> report.md
-          echo "![Confusion Matrix](./confusion_matrix.png)" >> report.md
+          test_metrics.md >> report.md
 
-          # Post CML report as a comment in GitHub
-          cml comment create report.md
+      #   # Create and save confusion matrix for dog breed classification
+      # - name: Generate confusion matrix
+      #   run: |
+      #     python scripts/generate_confusion_matrix.py  # Make sure this script generates and saves confusion_matrix.png
+      #     echo "### Confusion Matrix" >> report.md
+      #     echo "![Confusion Matrix](./confusion_matrix.png)" >> report.md
+
+      #     # Post CML report as a comment in GitHub
+      #     cml comment create report.md
