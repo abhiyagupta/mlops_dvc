@@ -1,9 +1,9 @@
 name: Train and Report
 on:
   push:
-    branches: [ dvc ]
+    branches: [ master ]
   pull_request:
-    branches: [ dvc ]
+    branches: [ mastre ]
 
 jobs:
   train-and-report:
