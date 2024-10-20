@@ -42,10 +42,8 @@ jobs:
           echo "${GDRIVE_CREDENTIALS_DATA}" > gdrive-creds.json
         
       - name: Pull data from DVC
-        env:
-          GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
         run: |
-          dvc pull -r gdrive
+          dvc pull 
 
       # Train the model using DVC
       - name: Train model
