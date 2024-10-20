@@ -3,7 +3,7 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    branches: [ mastre ]
+    branches: [ master ]
 
 jobs:
   train-and-report:
