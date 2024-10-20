@@ -34,16 +34,24 @@ jobs:
         run: |
           pip install --upgrade dvc dvc-gdrive
 
-      # Set up Google Drive credentia
-      - name: Set up Google Drive credentials 
+      # # Set up Google Drive credentia
+      # - name: Set up Google Drive credentials 
+      #   env:
+      #     GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
+      #   run: |
+      #     echo "${GDRIVE_CREDENTIALS_DATA}" > gdrive-creds.json
+      # - name: Pull data from DVC      
+      #   run: |
+      #     dvc pull
+
+
+      - name: Pull data from DVC
         env:
           GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
         run: |
-          echo "${GDRIVE_CREDENTIALS_DATA}" > gdrive-creds.json
-        
-      - name: Pull data from DVC
-        run: |
-          dvc pull 
+           dvc pull
+
+       
 
       # Train the model using DVC
       - name: Train model
