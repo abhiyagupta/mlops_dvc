@@ -5,7 +5,7 @@ name: Python CI/CD application
 on:
   # push to main
   push:
-    branches: [ "ci-pipeline" ]
+    branches: [ "test" ]
 
 permissions:
   contents: read
