@@ -1,7 +1,8 @@
 schema: '2.0'
 stages:
   train:
-    cmd: docker-compose run --rm train
+    #cmd: docker-compose run --rm train
+    cmd: python src/train.py experiment=catdog_ex +trainer.log_every_n_steps=5 +trainer.fast_dev_run=true
     deps:
     - path: configs/experiment/finetune.yaml
       hash: md5
@@ -17,7 +18,8 @@ stages:
       md5: db008c3c32c816da4dbc780b3a974b83
       size: 5236
   eval:
-    cmd: docker-compose run --rm eval
+    #cmd: docker-compose run --rm eval
+    cmd: python src/eval.py experiment=catdog_ex +trainer.log_every_n_steps=5 +trainer.fast_dev_run=true
     deps:
     - path: configs/experiment/finetune.yaml
       hash: md5
@@ -33,7 +35,8 @@ stages:
       md5: 384308fb9363f320ca263bb7f5bf9666
       size: 4159
   infer:
-    cmd: docker-compose run --rm infer
+    #cmd: docker-compose run --rm infer
+     cmd: python src/infer.py experiment=catdog_ex +trainer.log_every_n_steps=5 +trainer.fast_dev_run=true
     deps:
     - path: configs/experiment/finetune.yaml
       hash: md5
