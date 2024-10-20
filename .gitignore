@@ -49,11 +49,6 @@ __pycache__/
 # C extensions
 *.so
 
-# Model checkpoints and large data files
-*.pth
-*.h5
-*.csv
-*.pkl
 # Distribution / packaging
 .Python
 build/
