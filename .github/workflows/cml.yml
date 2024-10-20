@@ -44,8 +44,8 @@ jobs:
       - name: Pull data from DVC
         run: |
           # Configure DVC to use the service account credentials file
-          dvc remote modify myremote gdrive_use_service_account true
-          dvc remote modify myremote gdrive_service_account_key gdrive-creds.json
+          dvc remote modify gdrive gdrive_use_service_account true
+          dvc remote modify gdrive gdrive_service_account_key gdrive-creds.json
           # Pull data from the remote
           dvc pull
 
