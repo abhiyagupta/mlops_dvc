@@ -1,9 +1,10 @@
 name: Train and Report
 on:
-  push:
-    branches: [ dvc ]
+  workflow_dispatch:
+  # push:
+  #   branches: [ test ]
   pull_request:
-    branches: [ dvc ]
+    branches: [ test ]
 jobs:
   train-and-report:
     runs-on: ubuntu-latest
