@@ -25,6 +25,7 @@ __pycache__/
 
 # Environment variables
 .env
+.gitpod
 
 
 # Model checkpoints and large data files
