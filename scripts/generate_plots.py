@@ -2,6 +2,12 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from glob import glob
+import torch 
+import hydra
+from omegaconf import DictConfig
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import numpy as np
 
 # Find the most recent metrics.csv file
 csv_files = glob("outputs/*/*/csv/version_*/metrics.csv")
@@ -43,6 +49,9 @@ test_metrics = df.iloc[-1]
 test_table = "| Metric | Value |\n|--------|-------|\n"
 test_table += f"| Test Accuracy | {test_metrics['test/acc_epoch']:.4f} |\n"
 test_table += f"| Test Loss | {test_metrics['test/loss_epoch']:.4f} |\n"
+
+# =========================
+
 
 # Write the test metrics table to a file
 with open("test_metrics.md", "w") as f:

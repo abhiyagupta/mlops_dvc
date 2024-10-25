@@ -1,4 +1,4 @@
 | Metric | Value |
 |--------|-------|
-| Test Accuracy | 0.8193 |
-| Test Loss | 1.8786 |
+| Test Accuracy | 0.8253 |
+| Test Loss | 1.8477 |

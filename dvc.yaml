@@ -1,23 +1,23 @@
 stages:
   train:
-    #cmd: docker-compose run --rm train
-    cmd: python src/train.py experiment=finetune +trainer.log_every_n_steps=5
+    cmd: docker-compose run --rm train
+    #cmd: python src/train.py experiment=finetune +trainer.log_every_n_steps=5
     deps:
       - src/train.py
       - configs/experiment/finetune.yaml
       #- data/dogs_dataset
 
   eval:
-    #cmd: docker-compose run --rm eval
-    cmd: python src/eval.py experiment=finetune +trainer.log_every_n_steps=5
+    cmd: docker-compose run --rm eval
+    #cmd: python src/eval.py experiment=finetune +trainer.log_every_n_steps=5
     deps:
       - src/eval.py
       - configs/experiment/finetune.yaml
       #- data/dogs_dataset
 
   infer:
-    #cmd: docker-compose run --rm infer
-    cmd: python src/infer.py experiment=finetune +trainer.log_every_n_steps=5
+    cmd: docker-compose run --rm infer
+    #cmd: python src/infer.py experiment=finetune +trainer.log_every_n_steps=5
     deps:
       - src/infer.py
       - configs/experiment/finetune.yaml
