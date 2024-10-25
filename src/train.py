@@ -179,5 +179,8 @@ def main(cfg: DictConfig):
         test(cfg, trainer, model, datamodule)
 
 
+    plot_confusion_matrix(model=model,datamodule=datamodule)
+
+
 if __name__ == "__main__":
     main()
