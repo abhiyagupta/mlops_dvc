@@ -20,6 +20,11 @@ defaults:
   # debugging config (enable through command line, e.g. `python train.py debug=default)
   - debug: null
 
+
+  - override hydra/sweeper: optuna
+  - override hydra/sweeper/sampler: tpe
+  - override hydra/launcher: joblib
+
 # paths:
 #   data_dir: ${hydra:runtime.cwd}/data
 #   log_dir: ${hydra:runtime.cwd}/logs
@@ -46,3 +51,65 @@ ckpt_path: null
 # seed for random number generators in pytorch, numpy and python.random
 seed: 42
 
+
+
+hydra:
+  launcher:
+    # don't go above [RunTimeError:: Please call `iter(combined_loader)` first.]
+    # `NOT ABLE to UNDERSTAND :(`:: https://github.com/Lightning-AI/pytorch-lightning/issues/19373 
+    # No activity:: https://github.com/openvinotoolkit/anomalib/issues/2078
+    n_jobs: 1   
+  sweeper:
+    sampler:
+      seed: 123
+    direction: minimize   # we use test_metrics['test/loss_epoch']
+    study_name: optimal_searching
+    n_trials: 20  #96 totoal
+    n_jobs: 16 # 16-thread
+    params:
+      # https://github.com/facebookresearch/hydra/discussions/2906
+      +dims:  "[1,1,1,1], [3,6,12,18], [6,12,24,36] ,[12,24,48,72]"
+      +depths: "[1,1,1,1], [3,3,9,3], [3,3,15,3], [3,4,27,3]"
+      +head_fn: choice('norm_mlp','default')
+      +conv_ratio: choice(1,1.2,1.5)
+
+
+
+  ####################################################################
+  #
+  #
+  #               Satya Sweeper
+  #
+  #
+  ####################################################################
+  # sweeper:
+  #   _target_: hydra_plugins.hydra_optuna_sweeper.optuna_sweeper.OptunaSweeper
+
+  #   # storage URL to persist optimization results
+  #   # for example, you can use SQLite if you set 'sqlite:///example.db'
+  #   storage: null
+
+  #   # name of the study to persist optimization results
+  #   study_name: null
+
+  #   # number of parallel workers
+  #   n_jobs: 1
+
+  #   # 'minimize' or 'maximize' the objective
+  #   direction: maximize
+
+  #   # total number of runs that will be executed
+  #   n_trials: 10
+
+  #   # choose Optuna hyperparameter sampler
+  #   # you can choose bayesian sampler (tpe), random search (without optimization), grid sampler, and others
+  #   # docs: <https://optuna.readthedocs.io/en/stable/reference/samplers.html>
+  #   sampler:
+  #     _target_: optuna.samplers.TPESampler
+  #     seed: 1234
+  #     n_startup_trials: 3 # number of random sampling runs before optimization starts
+  #   params:
+  #     +dims:  "[1,1,1,1], [3,6,12,18], [6,12,24,36] ,[12,24,48,72]"
+  #     +depths: "[1,1,1,1], [3,3,9,3], [3,3,15,3], [3,4,27,3]"
+  #     +head_fn: choice('norm_mlp','default')
+  #     +conv_ratio: choice(1,1.2,1.5)
