@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   # push to main
   push:
-   branches: [ "hyperparam" ]
+   #branches: [ "hyperparam" ]
 
 permissions:
   contents: read
@@ -50,14 +50,6 @@ jobs:
     - name: RUN finetune script
       run: python src/train.py experiment=finetune
 
-    # TODO:
-    # run: python src/test.py trainer.verbose=false >> _test.log
-    # id: checking_metric
-    # grep _test.log ??parse
-    # if: checking_metric > 0.95
-    # check if test
-   
-
     - name: save artifact
       uses: actions/upload-artifact@v3
       # artifacts for loguru+ckpt
@@ -88,6 +80,7 @@ jobs:
         coverage debug sys
         coverage debug data
 
+
     - name: Upload coverage reports
       uses: actions/upload-artifact@v3
       with:
@@ -97,45 +90,69 @@ jobs:
           coverage.xml
           htmlcov
 
-   # - name: Upload coverage to Codecov
-   #    uses: codecov/codecov-action@v3
-   #    with:
-   #      token: ${{ secrets.CODECOV_TOKEN }}
-   #      files: ./coverage.xml
-   #      fail_ci_if_error: true          
+    - name: Generate results table and plots
+      run: |
+          python scripts/generate_results.py
 
-  build-and-push-image:
-    # execute job in sequence
-    needs: test
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+    - name: Run optimized training
+      run: |
+          python scripts/train_optimized.py
 
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    - name: Create CML report
+      env:
+        REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+          echo "# Hyperparameter Optimization Results" >> report.md
+          
+          echo "### Combined Metrics Plot" >> report.md
+          echo "![Combined Metrics Plot](./combined_metrics_plot.png)" >> report.md
 
-    - name: Log in to the Container registry
-      uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+          echo "### Best Hyperparameters" >> report.md
+          cat optimization_results.md >> report.md
 
-    - name: Extract metadata (tags, labels) for Docker
-      id: meta
-      uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-        tags: |
-          type=raw,value=learn-ci
-          type=sha
+          echo "### Hyperparameters for Each Experiment" >> report.md
+          cat hyperparameters_table.md >> report.md
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
-      with:
-        context: .
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
+          echo "### Test Accuracy Across Experiments (Step-wise)" >> report.md
+          echo "![Test Accuracy Plot (Step-wise)](./test_accuracy_plot_step.png)" >> report.md
+
+          echo "### Test Accuracy Across Experiments (Epoch-wise)" >> report.md
+          echo "![Test Accuracy Plot (Epoch-wise)](./test_accuracy_plot_epoch.png)" >> report.md
+        
+          cml comment create report.md       
+
+  # build-and-push-image:
+  #   # execute job in sequence
+  #   needs: test
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     packages: write
+
+  #   steps:
+  #   - name: Checkout repository
+  #     uses: actions/checkout@v4
+
+  #   - name: Log in to the Container registry
+  #     uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+  #     with:
+  #       registry: ${{ env.REGISTRY }}
+  #       username: ${{ github.actor }}
+  #       password: ${{ secrets.GITHUB_TOKEN }}
+
+  #   - name: Extract metadata (tags, labels) for Docker
+  #     id: meta
+  #     uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+  #     with:
+  #       images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+  #       tags: |
+  #         type=raw,value=learn-ci
+  #         type=sha
+
+  #   - name: Build and push Docker image
+  #     uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+  #     with:
+  #       context: .
+  #       push: true
+  #       tags: ${{ steps.meta.outputs.tags }}
+  #       labels: ${{ steps.meta.outputs.labels }}
