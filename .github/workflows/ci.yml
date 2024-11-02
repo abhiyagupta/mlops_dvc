@@ -95,7 +95,7 @@ jobs:
           python scripts/generate_plots.py
 
     - name: Generate results table and plots
-        run: |
+      run: |
           python scripts/generate_results.py
 
     - name: Run optimized training
