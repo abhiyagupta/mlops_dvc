@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   # push to main
   # push:
-  #   branches: [ "ci-pipeline" ]
+  #   branches: [ "hyperparam" ]
 
 permissions:
   contents: read
