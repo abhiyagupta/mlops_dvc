@@ -90,8 +90,12 @@ jobs:
           coverage.xml
           htmlcov
 
-    - name: Generate results table and plots
+    - name: Generate plots
       run: |
+          python scripts/generate_plots.py
+
+    - name: Generate results table and plots
+        run: |
           python scripts/generate_results.py
 
     - name: Run optimized training
