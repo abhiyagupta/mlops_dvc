@@ -3,3 +3,5 @@ data/
 logs/
 outputs/
 __pycache__/
+.gitpod.yml
+/gitpod
