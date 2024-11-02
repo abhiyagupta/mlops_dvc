@@ -6,6 +6,9 @@ defaults:
   - callbacks: default
   - logger: default
   - trainer: default
+  - hydra: null #default
+
+experiment_name: "dog_experiment"  # Add this line
 
 paths:
   output_dir: ${hydra:runtime.cwd}/outputs
@@ -15,6 +18,15 @@ input_path: ${paths.data_dir}/dogs_dataset/dataset/validation/
 output_path: ${hydra:runtime.cwd}/validation_results/
 
 num_images: 5
+
+
+hydra:
+  run:
+    dir: ${paths.log_dir}/runs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: ${paths.log_dir}/multiruns/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  job:
+    chdir: True
 
 # defaults:
 #   - _self_

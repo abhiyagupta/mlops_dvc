@@ -174,7 +174,7 @@ def main(cfg: DictConfig):
     if cfg.get("train"):
         train(cfg, trainer, model, datamodule)
 
-    # Test the model
+    # # Test the model
     if cfg.get("test"):
         test(cfg, trainer, model, datamodule)
 

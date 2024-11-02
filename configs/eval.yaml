@@ -4,15 +4,32 @@ defaults:
   - model: mdogs
   - paths: default
   - trainer: default
-  - callbacks: default
-  - logger: default
+  - callbacks: default  
+  - hydra: null #default
+  #- logger: default
 
-#ckpt_path: null  # Path to the checkpoint file for evaluation
+
+# Define the experiment name
+experiment_name: "dog_experiment"  # Add this line
+
+#ckpt_path: null  # Path to the checkpoint file for evalSuation
 paths:
   output_dir: ${hydra:runtime.cwd}/outputs
 
 ckpt_path: ${paths.output_dir}
 split: "test"  # Which data split to evaluate on
+
+
+hydra:
+  run:
+    dir: ${paths.log_dir}/runs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: ${paths.log_dir}/multiruns/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  job:
+    chdir: True
+
+
+
 
 
 

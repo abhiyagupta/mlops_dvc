@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import logging
+import glob
 
 import hydra
 from omegaconf import DictConfig, OmegaConf
@@ -19,19 +20,21 @@ from src.utils.logging_utils import setup_logger, task_wrapper
 log = logging.getLogger(__name__)
 
 def instantiate_callbacks(callback_cfg: DictConfig) -> List[L.Callback]:
+    """Match the exact callback instantiation from train.py."""
     callbacks: List[L.Callback] = []
     if not callback_cfg:
         log.warning("No callback configs found! Skipping..")
         return callbacks
 
     for _, cb_conf in callback_cfg.items():
-        if "_target_" in cb_conf:
+        if isinstance(cb_conf, DictConfig) and "_target_" in cb_conf:
             log.info(f"Instantiating callback <{cb_conf._target_}>")
             callbacks.append(hydra.utils.instantiate(cb_conf))
 
     return callbacks
 
 def instantiate_loggers(logger_cfg: DictConfig) -> List[Logger]:
+    """Match the exact logger instantiation from train.py."""
     loggers: List[Logger] = []
     if not logger_cfg:
         log.warning("No logger configs found! Skipping..")
@@ -43,9 +46,6 @@ def instantiate_loggers(logger_cfg: DictConfig) -> List[Logger]:
             loggers.append(hydra.utils.instantiate(lg_conf))
 
     return loggers
-
-import os
-import glob
 
 def get_latest_checkpoint(base_dir):
     base_dir = Path(base_dir)
@@ -66,7 +66,6 @@ def get_latest_checkpoint(base_dir):
 
     raise FileNotFoundError(f"No checkpoints found in or above {base_dir}")
 
-
 @task_wrapper
 def evaluate(
     cfg: DictConfig,
@@ -75,6 +74,7 @@ def evaluate(
     datamodule: L.LightningDataModule,
 ):
     log.info("Starting evaluation!")
+    
     # Ensure the datamodule is set up
     datamodule.setup(stage="test")
 
@@ -82,24 +82,24 @@ def evaluate(
     test_loader = datamodule.test_dataloader()
 
     base_dir = cfg.paths.output_dir
-    ckpt_path = get_latest_checkpoint(base_dir)
-    log.info(f"Using checkpoint: {ckpt_path}")    
-
-    if (ckpt_path):
-        log.info(f"Loading checkpoint: {ckpt_path}")
+    try:
+        ckpt_path = get_latest_checkpoint(base_dir)
+        log.info(f"Using checkpoint: {ckpt_path}")    
         test_metrics = trainer.test(model, dataloaders=test_loader, ckpt_path=ckpt_path)
-    else:
-        log.warning("No checkpoint path provided. Using current model weights.")
+    except FileNotFoundError:
+        log.warning("No checkpoint found! Using current model weights.")
         test_metrics = trainer.test(model, dataloaders=test_loader)
+    
     log.info(f"Test metrics:\n{test_metrics}")
-  
 
 @hydra.main(version_base="1.3", config_path="../configs", config_name="eval")
 def main(cfg: DictConfig):
-    print(OmegaConf.to_yaml(cfg=cfg))
-
+    # Print config
+    #print(OmegaConf.to_yaml(cfg))
+    print(OmegaConf.to_yaml(cfg=cfg))  # Print the entire configuration
     # Set up paths
     log_dir = Path(cfg.paths.log_dir)
+    log_dir.mkdir(parents=True, exist_ok=True)
 
     # Set up logger
     setup_logger(log_dir / "eval_log.log")
@@ -115,7 +115,7 @@ def main(cfg: DictConfig):
     # Set up callbacks
     callbacks: List[L.Callback] = instantiate_callbacks(cfg.get("callbacks"))
 
-    # Set up loggers
+    # Set up loggers - using exact same approach as train.py
     loggers: List[Logger] = instantiate_loggers(cfg.get("logger"))
 
     # Initialize Trainer

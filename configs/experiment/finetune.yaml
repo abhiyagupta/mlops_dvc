@@ -7,6 +7,21 @@ defaults:
   - override /logger: default
   - override /trainer: default
 
+
+experiment_name: "dog_experiment"
+
+# Logger-specific configurations
+logger:
+  aim:
+    experiment: ${experiment_name}
+  mlflow:
+    experiment_name: ${experiment_name}
+    tags:
+      # model_type: "timm_classify"
+      dataset: "dogs_dataset"
+
+
+
 seed: 42
 
 data:

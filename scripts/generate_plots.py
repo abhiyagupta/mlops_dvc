@@ -18,6 +18,12 @@ latest_csv = max(csv_files, key=os.path.getctime)
 # Read the CSV file
 df = pd.read_csv(latest_csv)
 
+# Change the output paths to save in a specific directory
+output_dir = "plots"  # Specify the output directory
+
+# Ensure the output directory exists
+os.makedirs(output_dir, exist_ok=True)
+
 # Create training loss plot
 plt.figure(figsize=(10, 6))
 plt.plot(df["step"], df["train/loss_step"], label="Training Loss")
@@ -28,7 +34,7 @@ plt.ylabel("Loss")
 plt.title("Loss over step")
 plt.legend()
 plt.grid(True)
-plt.savefig("train_loss_step.png")
+plt.savefig(os.path.join(output_dir, "train_loss_step.png"))
 plt.close()
 
 # Create training accuracy plot
@@ -41,7 +47,7 @@ plt.ylabel("Accuracy")
 plt.title("Accuracy over step")
 plt.legend()
 plt.grid(True)
-plt.savefig("train_acc_step.png")
+plt.savefig(os.path.join(output_dir, "train_acc_step.png")) 
 plt.close()
 
 # Generate test metrics table
@@ -54,7 +60,7 @@ test_table += f"| Test Loss | {test_metrics['test/loss_epoch']:.4f} |\n"
 
 
 # Write the test metrics table to a file
-with open("test_metrics.md", "w") as f:
+with open(os.path.join(output_dir,"test_metrics.md"), "w") as f:
     f.write(test_table)
 
 print("Plots and test metrics table generated successfully.")

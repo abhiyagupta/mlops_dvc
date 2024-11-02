@@ -1,158 +1,142 @@
 import sys
 from pathlib import Path
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 import yaml
 from tabulate import tabulate
-
-# Add the project root to the Python path
-project_root = str(Path(__file__).resolve().parents[1])
-sys.path.append(project_root)
-
+from glob import glob
+import os
 
 def load_yaml(file_path):
     with open(file_path, "r") as file:
         return yaml.safe_load(file)
 
+def find_latest_runs():
+    # Look for runs in outputs directory instead of logs
+    base_dir = Path("outputs")
+    if not base_dir.exists():
+        raise FileNotFoundError("outputs directory not found")
+    
+    # Find all experiment directories
+    exp_dirs = list(base_dir.glob("*/*"))
+    if not exp_dirs:
+        raise FileNotFoundError("No experiment directories found")
+    
+    return sorted(exp_dirs, key=lambda x: x.stat().st_mtime, reverse=True)
+
+def process_experiment_data(exp_dir):
+    metrics_file = list(exp_dir.glob("csv/version_*/metrics.csv"))
+    hparams_file = list(exp_dir.glob("csv/version_*/hparams.yaml"))
+    
+    if not metrics_file or not hparams_file:
+        return None
+    
+    metrics_df = pd.read_csv(metrics_file[0])
+    hparams = load_yaml(hparams_file[0])
+    
+    # Extract key metrics
+    final_metrics = metrics_df.iloc[-1]
+    metrics_dict = {
+        'exp_name': exp_dir.parent.name,
+        'run_id': exp_dir.name,
+        'final_train_acc': final_metrics.get('train/acc_epoch', None),
+        'final_val_acc': final_metrics.get('val/acc_epoch', None),
+        'final_test_acc': final_metrics.get('test/acc_epoch', None),
+        'final_train_loss': final_metrics.get('train/loss_epoch', None),
+        'final_val_loss': final_metrics.get('val/loss_epoch', None),
+        'final_test_loss': final_metrics.get('test/loss_epoch', None),
+        'best_val_acc': metrics_df['val/acc_epoch'].max() if 'val/acc_epoch' in metrics_df else None,
+        'best_val_loss': metrics_df['val/loss_epoch'].min() if 'val/loss_epoch' in metrics_df else None,
+    }
+    
+    # Combine with hyperparameters
+    return {**metrics_dict, **hparams}
 
 def generate_results():
-    # Find the latest multirun directory
-    log_dir = Path(project_root) / "logs" / "train" / "multiruns"
-    latest_run = max(log_dir.glob("*"), key=lambda p: p.stat().st_mtime)
-
-    data = []
-    test_accuracies_step = {}
-    test_accuracies_epoch = {}
-
-    for exp_dir in latest_run.glob("[0-9]*"):
-        exp_num = exp_dir.name
-        hparams_file = exp_dir / "csv" / "version_0" / "hparams.yaml"
-        if hparams_file.exists():
-            hparams = load_yaml(hparams_file)
-            metrics_file = exp_dir / "csv" / "version_0" / "metrics.csv"
-            if metrics_file.exists():
-                metrics = pd.read_csv(metrics_file)
-                val_acc = metrics["val/acc"].max()
-                val_loss = metrics["val/loss"].min()
-
-                # Add validation metrics to hparams
-                hparams["val_acc"] = val_acc
-                hparams["val_loss"] = val_loss
-
-                data.append(hparams)
-
-                # Extract test accuracy for plotting
-                test_acc_step = metrics[["step", "val/acc"]].dropna()
-                test_acc_epoch = metrics[["epoch", "val/acc"]].dropna()
-                if not test_acc_step.empty:
-                    test_accuracies_step[exp_num] = test_acc_step
-                if not test_acc_epoch.empty:
-                    test_accuracies_epoch[exp_num] = test_acc_epoch
-
-    df = pd.DataFrame(data)
-
+    # Find and process all experiments
+    exp_dirs = find_latest_runs()
+    all_data = []
+    
+    for exp_dir in exp_dirs:
+        exp_data = process_experiment_data(exp_dir)
+        if exp_data:
+            all_data.append(exp_data)
+    
+    if not all_data:
+        raise ValueError("No valid experiment data found")
+    
+    # Create DataFrame with all results
+    results_df = pd.DataFrame(all_data)
+    
     # Generate hyperparameters table
-    hparams_table = tabulate(df, headers="keys", tablefmt="pipe", floatfmt=".4f")
-    with open("hyperparameters_table.md", "w") as f:
-        f.write("# Hyperparameters for Each Experiment\n\n")
+    hparam_cols = [col for col in results_df.columns if col not in 
+                  ['exp_name', 'run_id', 'final_train_acc', 'final_val_acc', 'final_test_acc',
+                   'final_train_loss', 'final_val_loss', 'final_test_loss', 'best_val_acc', 'best_val_loss']]
+    
+    hparams_table = tabulate(results_df[['exp_name', 'run_id'] + hparam_cols], 
+                           headers='keys', tablefmt='pipe', floatfmt='.4f')
+    
+    # Generate metrics table
+    metrics_table = tabulate(results_df[['exp_name', 'run_id', 'final_train_acc', 'final_val_acc', 
+                                       'final_test_acc', 'best_val_acc', 'final_train_loss', 
+                                       'final_val_loss', 'final_test_loss', 'best_val_loss']], 
+                           headers='keys', tablefmt='pipe', floatfmt='.4f')
+    
+
+
+    # Change the output paths to save in a specific directory
+    output_dir = "plots"  # Specify the output directory
+
+    # Ensure the output directory exists
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Save tables
+    with open(os.path.join( output_dir,"hyperparameters_comparison.md"), "w") as f:
+        f.write("# Hyperparameters Comparison\n\n")
         f.write(hparams_table)
 
-    # Generate test accuracy plot (step-wise)
-    plt.figure(figsize=(10, 6))
-    for exp_num, acc_data in test_accuracies_step.items():
-        plt.plot(
-            acc_data["step"],
-            acc_data["val/acc"],
-            marker="o",
-            label=f"Experiment {exp_num}",
-        )
-
-    plt.title("Test Accuracy Across Experiments (Step-wise)")
-    plt.xlabel("Step")
-    plt.ylabel("Accuracy")
-    plt.legend()
-    plt.grid(True)
+    with open(os.path.join( output_dir, "metrics_comparison.md"), "w") as f:
+        f.write("# Metrics Comparison\n\n")
+        f.write(metrics_table)
+    
+    # Generate plots
+    plt.figure(figsize=(15, 10))
+    
+    # Plot validation accuracy comparison
+    plt.subplot(2, 2, 1)
+    sns.barplot(data=results_df, x='exp_name', y='final_val_acc')
+    plt.title('Validation Accuracy Comparison')
+    plt.xticks(rotation=45)
+    
+    # Plot validation loss comparison
+    plt.subplot(2, 2, 2)
+    sns.barplot(data=results_df, x='exp_name', y='final_val_loss')
+    plt.title('Validation Loss Comparison')
+    plt.xticks(rotation=45)
+    
+    # Plot test accuracy comparison
+    plt.subplot(2, 2, 3)
+    sns.barplot(data=results_df, x='exp_name', y='final_test_acc')
+    plt.title('Test Accuracy Comparison')
+    plt.xticks(rotation=45)
+    
+    # Plot test loss comparison
+    plt.subplot(2, 2, 4)
+    sns.barplot(data=results_df, x='exp_name', y='final_test_loss')
+    plt.title('Test Loss Comparison')
+    plt.xticks(rotation=45)
+    
     plt.tight_layout()
-    plt.savefig("test_accuracy_plot_step.png")
-
-    # Prepare data for plotting
-    plot_data = []
-    for exp_num, acc_data in test_accuracies_epoch.items():
-        for _, row in acc_data.iterrows():
-            plot_data.append(
-                {
-                    "Experiment": f"Exp {exp_num}",
-                    "Epoch": row["epoch"],
-                    "Accuracy": row["val/acc"],
-                }
-            )
-
-    plot_df = pd.DataFrame(plot_data)
-
-    # Generate test accuracy plot (epoch-wise)
-    plt.figure(figsize=(12, 6))
-    sns.lineplot(data=plot_df, x="Epoch", y="Accuracy", hue="Experiment", marker="o")
-
-    plt.title("Test Accuracy Across Experiments (Epoch-wise)")
-    plt.xlabel("Epoch")
-    plt.ylabel("Accuracy")
-    plt.legend(title="Experiment", bbox_to_anchor=(1.05, 1), loc="upper left")
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig("test_accuracy_plot_epoch.png", bbox_inches="tight")
-
-    # Generate plot
-    plt.figure(figsize=(12, 6))
-    plt.subplot(1, 2, 1)
-    plt.plot(df["val_loss"])
-    plt.title("Validation Loss")
-    plt.xlabel("Run")
-    plt.ylabel("Loss")
-
-    plt.subplot(1, 2, 2)
-    plt.plot(df["val_acc"])
-    plt.title("Validation Accuracy")
-    plt.xlabel("Run")
-    plt.ylabel("Accuracy")
-
-    plt.tight_layout()
-    plt.savefig("combined_metrics_plot.png")
-
-    # Load and process optimization results
-    opt_results_file = latest_run / "optimization_results.yaml"
-    if opt_results_file.exists():
-        opt_results = load_yaml(opt_results_file)
-
-        # Create DataFrame for name and best parameters
-        data = {
-            "Parameter": ["name"] + list(opt_results["best_params"].keys()),
-            "Value": [opt_results["name"]] + list(opt_results["best_params"].values()),
-        }
-        results_df = pd.DataFrame(data)
-
-        # Add best value to the DataFrame
-        results_df = pd.concat(
-            [
-                results_df,
-                pd.DataFrame(
-                    [{"Parameter": "best_value", "Value": opt_results["best_value"]}]
-                ),
-            ],
-            ignore_index=True,
-        )
-
-        # Convert DataFrame to Markdown
-        md_table = tabulate(results_df, headers="keys", tablefmt="pipe", floatfmt=".6f")
-
-        # Save Markdown table to file
-        with open("optimization_results.md", "w") as f:
-            f.write("# Optimization Results\n\n")
-            f.write(md_table)
-
-        print("Optimization results saved to 'optimization_results.md'")
-
+    plt.savefig(os.path.join(output_dir,'metrics_comparison.png', bbox_inches='tight', dpi=300))
+    plt.close()
+    
+    print("Results generated successfully!")
+    print(f"Processed {len(results_df)} experiments")
+    print("Generated files:")
+    print("- hyperparameters_comparison.md")
+    print("- metrics_comparison.md")
+    print("- metrics_comparison.png")
 
 if __name__ == "__main__":
     generate_results()

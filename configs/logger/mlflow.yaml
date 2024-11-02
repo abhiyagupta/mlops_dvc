@@ -2,7 +2,7 @@
 
 mlflow:
   _target_: lightning.pytorch.loggers.MLFlowLogger
-  experiment_name: ${logger.mlflow.experiment_name}
+  experiment_name: ${experiment_name}       #${logger.mlflow.experiment_name}
   tracking_uri: "file:${paths.log_dir}/mlruns"
   save_dir: "${paths.log_dir}/mlruns"
   log_model: True

@@ -5,8 +5,8 @@ name: Python CI/CD application
 on:
   workflow_dispatch:
   # push to main
-  push:
-   branches: [ "hyperparam" ]
+  #push:
+   #branches: [ "hyperparam" ]
 
 permissions:
   contents: read
@@ -98,9 +98,9 @@ jobs:
       run: |
           python scripts/generate_results.py
 
-    - name: Run optimized training
-      run: |
-          python scripts/train_optimized.py
+    # - name: Run optimized training
+    #   run: |
+    #       python scripts/train_optimized.py
 
     - name: Create CML report
       env:

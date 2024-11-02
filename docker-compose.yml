@@ -83,3 +83,33 @@ services:
       sh -c "pip install pytest pytest-cov &&
              pytest -v --maxfail=1 --disable-warnings --cov=src --cov-report=html:/code/cov_html --cov-report=term tests/"
     
+  generate_plots:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      volumes:
+        - ./logs:/code/logs
+        - ./outputs:/code/outputs
+        - ./scripts:/code/scripts
+        - ./plots:/code/plots  # New volume for storing generated plots
+      environment:
+        - PYTHONPATH=/code
+        - PYTHONUNBUFFERED=1
+      command: >
+        sh -c "pip install matplotlib pandas seaborn &&
+              python scripts/generate_plots.py"
+  generate_results:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./logs:/code/logs
+      - ./outputs:/code/outputs
+      - ./scripts:/code/scripts
+      - ./plots:/code/plots  # Share the same plots directory
+    environment:
+      - PYTHONPATH=/code
+      - PYTHONUNBUFFERED=1
+    command: >
+      sh -c "pip install matplotlib pandas seaborn pyyaml tabulate &&
+             python scripts/generate_results.py"    

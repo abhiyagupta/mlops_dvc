@@ -2,7 +2,7 @@
 
 aim:
   _target_: aim.pytorch_lightning.AimLogger
-  experiment: ${logger.aim.experiment}
+  experiment:  ${experiment_name}            #${logger.aim.experiment}
   train_metric_prefix: "train/"
   test_metric_prefix: "test/"
   val_metric_prefix: "val/"
