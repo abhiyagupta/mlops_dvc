@@ -15,6 +15,7 @@ experiment_name: "dog_experiment"  # Add this line
 #ckpt_path: null  # Path to the checkpoint file for evalSuation
 paths:
   output_dir: ${hydra:runtime.cwd}/outputs
+  plots_dir: ${hydra:runtime.cwd}/plots  # New entry for plots
 
 ckpt_path: ${paths.output_dir}
 split: "test"  # Which data split to evaluate on

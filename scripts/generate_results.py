@@ -92,10 +92,14 @@ def generate_results():
     os.makedirs(output_dir, exist_ok=True)
 
     # Save tables
+    #====added line
+    hparams_path = os.path.join(output_dir, "hyperparameters_comparison.md")  # Define hparams_path
     with open(os.path.join( output_dir,"hyperparameters_comparison.md"), "w") as f:
         f.write("# Hyperparameters Comparison\n\n")
         f.write(hparams_table)
 
+
+    metrics_path = os.path.join(output_dir, "metrics_comparison.md")  # Define metrics_path
     with open(os.path.join( output_dir, "metrics_comparison.md"), "w") as f:
         f.write("# Metrics Comparison\n\n")
         f.write(metrics_table)
@@ -128,15 +132,18 @@ def generate_results():
     plt.xticks(rotation=45)
     
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir,'metrics_comparison.png', bbox_inches='tight', dpi=300))
+    # Save plot (fixed the savefig syntax)
+    plot_path = os.path.join(output_dir, 'metrics_comparison.png')
+    plt.savefig(plot_path, bbox_inches='tight', dpi=300)
     plt.close()
+    print(f"Saved metrics comparison plot to: {plot_path}")
     
-    print("Results generated successfully!")
-    print(f"Processed {len(results_df)} experiments")
+    print("\n=== Results Generation Complete ===")
+    print(f"Successfully processed {len(results_df)} experiments")
     print("Generated files:")
-    print("- hyperparameters_comparison.md")
-    print("- metrics_comparison.md")
-    print("- metrics_comparison.png")
+    print(f"- {os.path.basename(hparams_path)}")
+    print(f"- {os.path.basename(metrics_path)}")
+    print(f"- {os.path.basename(plot_path)}")
 
 if __name__ == "__main__":
     generate_results()
