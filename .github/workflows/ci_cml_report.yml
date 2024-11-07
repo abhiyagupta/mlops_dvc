@@ -2,8 +2,8 @@ name: Python CI/CD application
 
 on:
   workflow_dispatch:
-  push: 
-    branches: [ "hyperparam" ]
+  # push: 
+  #   branches: [ "hyperparam" ]
 
 permissions:
   contents: read
