@@ -140,8 +140,15 @@ def evaluate(
         log.warning("No checkpoint found! Using current model weights.")
         test_metrics = trainer.test(model, dataloaders=test_loader)
     
-    log.info(f"Test metrics:\n{test_metrics}")
-    
+    #log.info(f"Test metrics:\n{test_metrics}")
+     # Check if metrics are valid before logging
+    if isinstance(test_metrics, list) and len(test_metrics) > 0:
+        log.info(f"Test metrics:\n{test_metrics[0]}")  # Log the first metric if it's a list
+    else:
+        log.warning("Invalid test metrics format or no metrics returned!")
+
+
+
     # Generate confusion matrix
     log.info("Generating confusion matrix...")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
