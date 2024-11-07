@@ -90,7 +90,16 @@ def evaluate(
         log.warning("No checkpoint found! Using current model weights.")
         test_metrics = trainer.test(model, dataloaders=test_loader)
     
-    log.info(f"Test metrics:\n{test_metrics}")
+    #log.info(f"Test metrics:\n{test_metrics}")
+    # Check if metrics are valid before logging
+    if isinstance(test_metrics, list) and len(test_metrics) > 0:
+        log.info(f"Test metrics:\n{test_metrics[0]}")  # Log the first metric if it's a list
+    else:
+        log.warning("Invalid test metrics format or no metrics returned!")
+
+
+
+
 
 @hydra.main(version_base="1.3", config_path="../configs", config_name="eval")
 def main(cfg: DictConfig):

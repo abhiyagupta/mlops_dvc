@@ -73,11 +73,25 @@ def evaluate(trainer, model, datamodule, ckpt_path):
     if ckpt_path:
         # Use the test_dataloader from the datamodule
         test_dataloader = datamodule.test_dataloader()
-        trainer.test(model, test_dataloader, ckpt_path=ckpt_path)
+
+
+        test_metrics = trainer.test(model, test_dataloader, ckpt_path=ckpt_path)
+        
+        # Check if metrics are valid before logging
+        if isinstance(test_metrics, list) and len(test_metrics) > 0:
+            logging.info(f"Evaluation metrics: {test_metrics[0]}")  # Log the first metric if it's a list
+        else:
+            logging.warning("Invalid evaluation metrics format or no metrics returned.")
     else:
         logging.error("No checkpoint path provided. Cannot evaluate the model.")
-        return
-    logging.info(f"Evaluation metrics: {trainer.callback_metrics}")
+
+
+        
+    #     trainer.test(model, test_dataloader, ckpt_path=ckpt_path)
+    # else:
+    #     logging.error("No checkpoint path provided. Cannot evaluate the model.")
+    #     return
+    # logging.info(f"Evaluation metrics: {trainer.callback_metrics}")
 
 
 
