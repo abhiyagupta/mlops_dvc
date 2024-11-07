@@ -5,6 +5,7 @@ source = src
 omit =
     src/eval.py
     src/infer.py
+    src/eval_cm.py
 
 show_missing = true
  

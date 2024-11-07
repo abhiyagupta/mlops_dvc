@@ -5,8 +5,6 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      # - .:/code # mount the entire project
-      # - ./configs:/code/configs
       - ./logs:/code/logs
       #- ./checkpoints:/code/checkpoints
       # - ./input:/app/input
@@ -15,8 +13,6 @@ services:
     environment:
       - PYTHONPATH=/code
       - PYTHONUNBUFFERED=1
-      # - DATA_PATH=/code/data
-      # - OUTPUT_PATH=/code/.data/output      
     # working_dir: /code
     command: python src/train.py 
     #command: python src/train.py --config-dir configs --config-name=train.yaml
@@ -29,17 +25,16 @@ services:
       #- .:/code # moun the entire project
       # - ./checkpoints:/code/checkpoints
       - ./logs:/code/logs
+      - ./plots:/code/plots
       - ./outputs:/code/outputs
       - ./data:/code/data 
  
     environment:
       - PYTHONPATH=/code 
       - PYTHONUNBUFFERED=1
-      # - DATA_PATH=/code/data
-      # - OUTPUT_PATH=/code/.data/output
     #working_dir: /code
-    command: python src/eval.py --config-dir configs --config-name=eval.yaml
-    #command: python src/eval.py --config-path=code/configs --config-name=eval.yaml
+    #command: python src/eval.py --config-dir configs --config-name=eval.yaml
+    command: python src/eval_cm.py --config-dir configs --config-name=eval.yaml
     depends_on:
       - train
 
@@ -58,8 +53,6 @@ services:
     environment:
       - PYTHONPATH=/code
       - PYTHONUNBUFFERED=1
-      # - DATA_PATH=/code/data
-      # - OUTPUT_PATH=/code/.data/output
     #working_dir: /code
     command: python src/infer.py --config-dir configs --config-name=infer.yaml
     #command: python src/infer.py --config-path=code/configs --config-name=infer.yaml
@@ -77,8 +70,7 @@ services:
     environment:
       - PYTHONPATH=/code
       - PYTHONUNBUFFERED=1
-    #command: pytest --maxfail=1 --disable-warnings -q --cov=src --cov-report=html:cov_html --cov-report=term tests/
-    #working_dir: /code
+      #working_dir: /code
     command: 
       sh -c "pip install pytest pytest-cov &&
              pytest -v --maxfail=1 --disable-warnings --cov=src --cov-report=html:/code/cov_html --cov-report=term tests/"
