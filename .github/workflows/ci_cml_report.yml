@@ -12,22 +12,28 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+# groups set of actions that needs to execute
 jobs:
+
   test:
     env:
+      # don't expose kaggle API key 😠, using secrets here 🤐
       username: ${{ secrets.USERNAME }}
       key: ${{ secrets.KEY }}
 
+
     runs-on: ubuntu-latest
   
-    # steps:
-    # - name: checking kaggle key as env secrets
-    #   run: |
-    #     echo "username: ${{ env.USERNAME }}"
-    #     echo "key: ${{ env.KEY }}"
+    steps:
+    - name: checking kaggle key as env secrets
+      run: |
+        echo "username: ${{ env.USERNAME }}"
+        echo "key: ${{ env.KEY }}"
 
     - uses: actions/checkout@v4
-
+    
+     
+    # install deps
     - name: Set requirements
       run: |
         python -m pip install --upgrade pip
