@@ -8,36 +8,64 @@ Key Features
 - **Hydra**: dynamic configuration usuing Hydra.
 - **Docker Containerization**: Includes Docker setup for easy deployment and reproducibility across different environments.
 - **Code Cover & Pytest**: Ensure robust code quality by integrating pytest and Codecov for automated testing and achieving 70% or higher test coverage.
-- **GHRC integration**: deploy and manage Docker image with GitHub Container Registry (GHCR) for seamless integration and versioning. 
+- **Multi Logger** : Loggers used to log model metrics - of train, eval, and infer are
+                    - TensorBoard
+                    - CSV
+                    - Aim
+                    - Mflow
 
-Dataset split into train, test, validation for inference:
-![image](https://github.com/user-attachments/assets/411ead5e-96f0-40a9-9253-e3acd6a6ad99)
+- **HyperParameter**: Hyperparameter optimization and loggers.
+- All generated reports are saved in dir called as "Plots" and inference images are saved in dir "Validation_results"
 
-
-Training:
-![image](https://github.com/user-attachments/assets/ad679726-194c-4551-85e9-233af1527427)
-
-
-Testing:
-![image](https://github.com/user-attachments/assets/e1fa6543-4069-4fb4-a104-ddcd84781519)
-
-
-Dockerization:
-![image](https://github.com/user-attachments/assets/6b1475c2-fc89-42c5-8a68-beb5ba9db676)
-
-
-Code cover:
-![image](https://github.com/user-attachments/assets/73a6d387-d9e5-4ea6-9ee6-1fa4536a1bd6)
+Code to run via docker: 
+-docker compose build
+-docker compose run train
+-docker compose run eval_cm
+-docker compose run infer
+-docker compose run testing 
+-docker compose run generate_plots
+-docker compose run generate_reults
 
 
-Predictions:
-![image](https://github.com/user-attachments/assets/811ff23a-b5e8-45df-8d75-da55205b041f)
-![image](https://github.com/user-attachments/assets/d61ca32e-54ef-499c-9e55-a1df96f9b695)
+Code to run via terminal directly:
+- activate virtual environment
+- pip install requirements.txt (or do - docker build image . - this will activate virtaul env and also install requirements)
+- option 2: 
+- docker build -t my_training_image .
+- run container - docker run -it --name my_training_container my_training_image /bin/bash
+- python src/train.py
+- python eval_cm.py
+- python infer.py
+- python scripts/generate_plots.py
+- python scripts/generate_results.py 
 
 
+Metrics Generated: 
 
-added packge to GHRC:
-![Uploading image.png…]()
+confusion matrix for multiclass problem- classes (number of classes 10): 
 
+![confusion_matrix](https://github.com/user-attachments/assets/21bc02ff-f328-4d01-b442-89d7d9442e55)
+
+
+metric comparision between different epochs
+![image](https://github.com/user-attachments/assets/0a75fe4a-71e1-4e94-a6b6-dbddecfa3852)
+
+
+Hyperparameter comparison table:
+
+![image](https://github.com/user-attachments/assets/fbf471b6-1b14-47cc-a80c-21718617252a)
+
+
+test Metrics:
+
+![image](https://github.com/user-attachments/assets/f9c1a8f1-2d24-4ad3-9a02-562faf881941)
+
+
+Train accuracy step: 
+![image](https://github.com/user-attachments/assets/6ecdf054-ab7f-4208-93bf-ab69545cc4bb)
+
+Train Loss step:
+
+![image](https://github.com/user-attachments/assets/efef0960-f27a-4f44-8e9f-701bc5c670e4)
 
 
