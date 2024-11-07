@@ -1,0 +1,129 @@
+name: Python CI/CD application
+
+on:
+  workflow_dispatch:
+  #push:
+  #branches: [ "hyperparam" ]
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    env:
+      username: ${{ secrets.USERNAME }}
+      key: ${{ secrets.KEY }}
+
+    runs-on: ubuntu-latest
+  
+    # steps:
+    # - name: checking kaggle key as env secrets
+    #   run: |
+    #     echo "username: ${{ env.USERNAME }}"
+    #     echo "key: ${{ env.KEY }}"
+
+    - uses: actions/checkout@v4
+
+    - name: Set requirements
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest coverage      
+
+    - name: RUN finetune script
+      run: python src/train.py experiment=finetune
+
+    - name: Save training artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: training-artifacts
+        path: |
+          logs
+          outputs/*/*/checkpoints/*.ckpt
+
+    - name: Run evaluation
+      run: | 
+         python src/eval_cm.py
+
+    - name: Run inference
+      run: python src/infer.py
+
+    - name: Upload inference results
+      uses: actions/upload-artifact@v3
+      with:
+        name: inference-results
+        path: validation_results
+
+    - name: Run tests with coverage
+      run: |
+        coverage run -m pytest
+        coverage xml
+        coverage html
+
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-reports
+        path: |
+          .coverage
+          coverage.xml
+          htmlcov
+
+    - name: Generate plots
+      run: |
+          python scripts/generate_plots.py
+
+    - name: Generate results hyperparam results
+      run: |
+          python scripts/generate_results.py
+
+    - name: Install CML
+      run: |
+        pip install cml
+
+    - name: Create CML report
+      env:
+        REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+          # Create the main report
+          echo "# Model Training and Evaluation Results" >> report.md
+          
+          echo "## Training Metrics" >> report.md
+          echo "### Training Loss" >> report.md
+          echo "![Training Loss](./plots/train_loss_step.png)" >> report.md
+          
+          echo "### Training Accuracy" >> report.md
+          echo "![Training Accuracy](./plots/train_acc_step.png)" >> report.md
+          
+          echo "## Evaluation Results" >> report.md
+          echo "### Confusion Matrix" >> report.md
+          echo "![Confusion Matrix](./plots/confusion_matrix.png)" >> report.md
+          
+          echo "### Metrics Comparison" >> report.md
+          echo "![Metrics Comparison](./plots/metrics_comparison.png)" >> report.md
+          
+          # Add markdown tables from the plots directory
+          echo "## Detailed Metrics" >> report.md
+          echo "### Hyperparameters Comparison" >> report.md
+          plots/hyperparameters_comparison.md >> report.md
+          
+          echo "### Metrics Comparison" >> report.md
+          plots/metrics_comparison.md >> report.md
+          
+          echo "### Test Metrics" >> report.md
+          plots/test_metrics.md >> report.md
+          
+          # Create the CML report
+          cml comment create report.md
+
+    - name: Upload consolidated results
+      uses: actions/upload-artifact@v3
+      with:
+        name: ml-reports-and-plots
+        path: |
+          report.md
+          plots/*
