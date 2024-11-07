@@ -33,7 +33,7 @@ class DogsBreedClassifier(pl.LightningModule):
         self.valid_acc:Accuracy = Accuracy(task='multiclass',num_classes=self.hparams.num_classes)
 
         # Add the 'hp_metric' metric
-        self.hp_metric = torch.tensor(-1.0)
+        #self.hp_metric = torch.tensor(-1.0)
 
 
     def forward(self, x:torch.Tensor) -> torch.Any:
@@ -48,7 +48,7 @@ class DogsBreedClassifier(pl.LightningModule):
         self.log("train/loss",loss,prog_bar=True,on_epoch=True,on_step=True)
         self.log("train/acc",self.train_acc,prog_bar=True,on_epoch=True,on_step=True)
         #added
-        self.log("hp_metric", self.hp_metric, on_step=False, on_epoch=True)
+        #self.log("hp_metric", self.hp_metric, on_step=False, on_epoch=True)
         return loss 
 
     
@@ -62,7 +62,7 @@ class DogsBreedClassifier(pl.LightningModule):
         self.log("val/acc",self.valid_acc,prog_bar=True,on_epoch=True,on_step=True)
 
         # added
-        self.log("hp_metric", self.hp_metric, on_step=False, on_epoch=True
+        #self.log("hp_metric", self.hp_metric, on_step=False, on_epoch=True
         return loss 
     
 
@@ -76,7 +76,7 @@ class DogsBreedClassifier(pl.LightningModule):
         self.log("test/acc",self.test_acc,prog_bar=True,on_epoch=True,on_step=True)
 
         #added
-        self.log("hp_metric", self.hp_metric, on_step=False, on_epoch=True)
+        #self.log("hp_metric", self.hp_metric, on_step=False, on_epoch=True)
         return loss 
 
     def configure_optimizers(self) -> Dict:
