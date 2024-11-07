@@ -31,24 +31,3 @@ def get_rich_progress():
         transient=True
     )
 
-#=========================================================
-import torch 
-import lightning as pl 
-from sklearn.metrics import confusion_matrix
-
-def plot_confusion_matrix(model:pl.LightningModule,datamodule:pl.LightningDataModule):
-    model.eval()
-    y_pred = []
-    y_true = []
-    for batch in datamodule.train_dataloader():
-        x,y = batch 
-        logits = model(x)
-        loss   = torch.nn.functional.cross_entropy(logits,y)
-        preds  = torch.nn.functional.softmax(logits,dim=-1)
-        # preds,true comes in batch(32)
-        preds  = torch.argmax(preds,dim=-1)
-        for i,j in zip(preds,y):
-            print(y.shape,preds.shape,type(y),type(preds))
-            y_true.append(j.item())
-            y_pred.append(i.item())
-    print(confusion_matrix(y_true=y_true, y_pred=y_pred))
