@@ -47,8 +47,13 @@ confusion matrix for multiclass problem- classes (number of classes 10):
 ![confusion_matrix](https://github.com/user-attachments/assets/21bc02ff-f328-4d01-b442-89d7d9442e55)
 
 
-metric comparision between different epochs
+
+
+metric comparision between different epochs:
+
 ![image](https://github.com/user-attachments/assets/0a75fe4a-71e1-4e94-a6b6-dbddecfa3852)
+
+
 
 
 Hyperparameter comparison table:
@@ -61,11 +66,18 @@ test Metrics:
 ![image](https://github.com/user-attachments/assets/f9c1a8f1-2d24-4ad3-9a02-562faf881941)
 
 
+
 Train accuracy step: 
+
 ![image](https://github.com/user-attachments/assets/6ecdf054-ab7f-4208-93bf-ab69545cc4bb)
+
+
 
 Train Loss step:
 
+
 ![image](https://github.com/user-attachments/assets/efef0960-f27a-4f44-8e9f-701bc5c670e4)
+
+
 
 
