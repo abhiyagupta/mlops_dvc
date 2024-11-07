@@ -72,13 +72,18 @@ def train(
     val_loader = datamodule.val_dataloader()
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
-    train_metrics = trainer.callback_metrics
-    #log.info(f"Training metrics:\n{train_metrics}")
+    train_metrics = trainer.callback_metrics 
     # Check if metrics are valid before logging
-    if isinstance(train_metrics, dict):
-        log.info(f"Training metrics:\n{train_metrics}")
-    else:
-        log.warning("Invalid training metrics format!")
+    train_metrics = {k: v for k, v in train_metrics.items() if v != -1}
+    log.info(f"Training metrics:\n{train_metrics}")
+    
+    # Check if metrics are valid before logging
+    # if isinstance(train_metrics, dict):
+    #     log.info(f"Training metrics:\n{train_metrics}")
+    # else:
+    #     log.warning("Invalid training metrics format!")
+
+
 
 @task_wrapper
 def test(
