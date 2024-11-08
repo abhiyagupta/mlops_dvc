@@ -17,21 +17,23 @@ Key Features
 - **HyperParameter**: Hyperparameter optimization and loggers.
 - All generated reports are saved in dir called as "Plots" and inference images are saved in dir "Validation_results"
 
-Code to train with Loggers:
+**Code to train with Loggers:**
 - python src/train.py experiment=finteune +trainer.log_every_n_steps=5
 - aim up : to view aim dashboard
 - cd logs --> inside logs dir ---> mlflow ui
 
-Code to do multirun:
+**Code to do multirun:**
 - python src/train.py --multirun experiment=finteune model.embed_dim=16,32,64
 
-Hyperparameter  optuna: 
+**Hyperparameter  optuna:** 
 - (install sweeper or add it to requirments.txt)
 - pip install hydra-optuna-sweeper
 - python src/train.py -m hparams_search=dog_breed_optuna +trainer.log_every_n_steps=5
 
 
-Code to run via docker: 
+
+
+**Code to run via docker (without optuna):** 
 -docker compose build
 -docker compose run train
 -docker compose run eval_cm
@@ -41,7 +43,7 @@ Code to run via docker:
 -docker compose run generate_reults
 
 
-Code to run via terminal directly:
+**Code to run via terminal directly:**
 - activate virtual environment
 - pip install requirements.txt (or do - docker build image . - this will activate virtaul env and also install requirements)
 - option 2: 
