@@ -15,15 +15,6 @@ root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True
 
 # # Imports that require root directory setup
 from src.utils.logging_utils import setup_logger, task_wrapper
-# Imports after setting up the root
-# from src.utils.logging_utils import (
-#     setup_logger,
-#     task_wrapper,
-#     logger,
-#     log_metrics_table,
-# )
-
-
 
 
 log = logging.getLogger(__name__)
@@ -76,13 +67,9 @@ def train(
     # Check if metrics are valid before logging
     train_metrics = {k: v for k, v in train_metrics.items() if v != -1}
     log.info(f"Training metrics:\n{train_metrics}")
-    
-    # Check if metrics are valid before logging
-    # if isinstance(train_metrics, dict):
-    #     log.info(f"Training metrics:\n{train_metrics}")
-    # else:
-    #     log.warning("Invalid training metrics format!")
 
+    return train_metrics
+    
 
 
 @task_wrapper
@@ -105,6 +92,10 @@ def test(
         test_metrics = trainer.test(model, dataloaders=datamodule.test_dataloader(),verbose=False)
     log.info(f"Test metrics:\n{test_metrics}")
 
+    return test_metrics[0] if test_metrics else {}
+
+
+
 
 @hydra.main(version_base="1.3", config_path="../configs", config_name="train")
 def main(cfg: DictConfig):
@@ -113,20 +104,7 @@ def main(cfg: DictConfig):
     print(f"Current working directory: {os.getcwd()}")
     print(OmegaConf.to_yaml(cfg=cfg))
 
-     # Resolve the paths
-    # cfg.paths.data_dir = os.path.abspath(cfg.paths.data_dir)
-    # cfg.paths.log_dir = os.path.abspath(cfg.paths.log_dir)
-    # cfg.paths.output_dir = os.path.abspath(cfg.paths.output_dir)
-
-
-
-    ## ADDED changes
-
-    # Print resolved paths
-    # print(f"Data directory: {cfg.paths.data_dir}")
-    # print(f"Log directory: {cfg.paths.log_dir}")
-    # print(f"Output directory: {cfg.paths.output_dir}")
-
+    
     # Set up paths
     log_dir = Path(cfg.paths.log_dir)
     log_dir.mkdir(parents=True, exist_ok=True)  # Ensure the log directory exists
@@ -134,25 +112,7 @@ def main(cfg: DictConfig):
     # Set up logger
     setup_logger(log_dir / "train_log.log")
 
-    # Log the resolved paths
-    # log.info(f"Data directory: {cfg.paths.data_dir}")
-    # log.info(f"Log directory: {cfg.paths.log_dir}")
-    # log.info(f"Output directory: {cfg.paths.output_dir}")
-
-
-
-
-    ## changes over here
-
-
-
-    # # Set up paths
-    # log_dir = Path(cfg.paths.log_dir)
-
-    # # Set up logger
-    # setup_logger(log_dir / "train_log.log")
-
-   
+    
     try:
         # Initialize DataModule
         log.info(f"Instantiating datamodule <{cfg.data._target_}>")
@@ -160,6 +120,7 @@ def main(cfg: DictConfig):
     except Exception as e:
         log.exception("Error instantiating datamodule")
         raise  
+
 
     # Initialize Model
     log.info(f"Instantiating model <{cfg.model._target_}>")
@@ -186,6 +147,19 @@ def main(cfg: DictConfig):
     # # Test the model
     if cfg.get("test"):
         test(cfg, trainer, model, datamodule)
+
+
+    # ADDITION FOR HYPERPARAMTER RESULT
+    # Combine metrics
+    all_metrics = {**train_metrics, **test_metrics}
+
+    # Extract and return the optimization metric
+    optimization_metric = all_metrics.get(cfg.get("optimization_metric"))
+    if optimization_metric is None:
+        log.warning(f"Optimization metric '{cfg.get('optimization_metric')}' not found in metrics. Returning 0.")
+        return 0.0
+    
+    return optimization_metric
 
 
 if __name__ == "__main__":

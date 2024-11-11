@@ -122,6 +122,8 @@ class DogsBreedDataModule(pl.LightningDataModule):
       print(f"Number of validation images: {len(self.val_dataset)}")
       print(f"Validation images saved to: {val_dir}")
 
+    
+    
     def create_dataframe(self):
         DATASET_PATH = self._dl_path.joinpath("dataset")
         
@@ -139,6 +141,7 @@ class DogsBreedDataModule(pl.LightningDataModule):
         print(f"shape of dataframe is {df.shape}") 
         return df
 
+    
     def split_train_test(self, df):
         train_split_idx, test_split_idx, _, _ = train_test_split(
             df.index, df.label, test_size=0.2, stratify=df.label, random_state=self.hparams.seed

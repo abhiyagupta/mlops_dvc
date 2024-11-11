@@ -5,6 +5,7 @@ from torch import nn
 from torch.nn import functional as F
 from torchmetrics import Accuracy
 from typing import Dict
+from torchmetrics import  MaxMetric
 
 class DogsBreedClassifier(pl.LightningModule):
     def __init__(
@@ -18,12 +19,16 @@ class DogsBreedClassifier(pl.LightningModule):
             scheduler_factor:float,
             scheduler_patience:int,
             min_lr:float
+            **kwargs,
+
     ) -> None:
         super().__init__()
         self.save_hyperparameters()
 
-        self.model:timm.models.resnest.ResNet = timm.create_model(model_name=self.hparams.model_name,pretrained=self.hparams.pretrained,num_classes=self.hparams.num_classes,global_pool = 'avg')
+        self.model:timm.models.resnest.ResNet = timm.create_model(
+            model_name=self.hparams.model_name,pretrained=self.hparams.pretrained,num_classes=self.hparams.num_classes,global_pool = 'avg',**kwargs)
 
+               
         # for p in self.model.parameters():
         #     p.requires_grad=self.hparams.trainable
 
@@ -34,6 +39,9 @@ class DogsBreedClassifier(pl.LightningModule):
 
         # Add the 'hp_metric' metric
         #self.hp_metric = torch.tensor(-1.0)
+
+        # Max test accuracy
+        self.test_acc_best = MaxMetric()
 
 
     def forward(self, x:torch.Tensor) -> torch.Any:
@@ -78,6 +86,18 @@ class DogsBreedClassifier(pl.LightningModule):
         #added
         #self.log("hp_metric", self.hp_metric, on_step=False, on_epoch=True)
         return loss 
+
+
+
+    # added for hyperparamater
+    def on_test_epoch_end(self):
+        self.test_acc_best(self.test_acc.compute())  # update best so far test acc
+        # log `test_acc_best` as a value through `.compute()` method, instead of as a metric object
+        # otherwise metric would be reset by lightning after each epoch
+        self.log("test/acc_best", self.test_acc_best.compute(), prog_bar=True)
+
+
+
 
     def configure_optimizers(self) -> Dict:
         optimizer = torch.optim.Adam(
