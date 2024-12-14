@@ -1,3 +1,5 @@
+**Session 06: Incorporating Data version control and Ci/cd pipeline of github actions**
+
 **Dog Breed Classification: ** This project aims to classify dog breeds using a convolutional neural network (CNN) trained on image data. The project is built using PyTorch Lightning, and Hydra is used for configuration management. The repo also includes test evaluation using a checkpointed model and inference capabilities. Additionally, code coverage (using Codecov) and Docker containerization are integrated.
 
 Key Features
